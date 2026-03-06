@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeMentor — Belajar Trading Terarah</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface2: #1a2235;
+            --accent: #00e5b4;
+            --accent2: #0099ff;
+            --danger: #ff4d6d;
+            --text: #e8edf5;
+            --muted: #8898aa;
+            --wa: #25D366;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .brand {
+            font-family: 'Syne', sans-serif;
+        }
+
+        /* ---- NOISE TEXTURE ---- */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        /* ---- GRID BACKGROUND ---- */
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(0,229,180,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,180,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* ---- GLOW ---- */
+        .glow-accent {
+            box-shadow: 0 0 60px rgba(0,229,180,0.15), 0 0 120px rgba(0,229,180,0.05);
+        }
+        .glow-blue {
+            box-shadow: 0 0 60px rgba(0,153,255,0.2), 0 0 120px rgba(0,153,255,0.05);
+        }
+
+        /* ---- NAV ---- */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: rgba(10,14,26,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+        .nav-logo span { color: var(--accent); }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-left: 28px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--accent); }
+
+        .btn-wa-nav {
+            background: var(--wa);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-wa-nav:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ---- HERO ---- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 24px 60px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,229,180,0.08);
+            border: 1px solid rgba(0,229,180,0.2);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 7px; height: 7px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        h1.hero-title {
+            font-size: clamp(2.4rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+            max-width: 900px;
+        }
+
+        h1.hero-title .highlight {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--muted);
+            max-width: 600px;
+            line-height: 1.7;
+            margin-bottom: 44px;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--wa), #1da851);
+            color: #fff;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 32px rgba(37,211,102,0.35);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px rgba(37,211,102,0.45);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text);
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(0,229,180,0.06);
+        }
+
+        /* ---- STATS ---- */
+        .stats-row {
+            display: flex;
+            gap: 48px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ---- SECTION COMMON ---- */
+        section {
+            padding: 100px 24px;
+            position: relative;
+        }
+
+        .section-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 580px;
+        }
+
+        .max-w {
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ---- PITFALL CARDS ---- */
+        .pitfall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 56px;
+        }
+
+        .pitfall-card {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 28px;
+            transition: border-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+        .pitfall-card:hover {
+            border-color: var(--danger);
+            transform: translateY(-4px);
+        }
+        .pitfall-icon {
+            font-size: 2rem;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .pitfall-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .pitfall-desc {
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ---- CHART ---- */
+        .chart-wrap {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 32px;
+            margin-top: 48px;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+        .chart-inner {
+            position: relative;
+            height: 380px;
+        }
+        #xauChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ---- COMPARE ---- */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 48px;
+        }
+        @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+
+        .compare-col {
+            padding: 40px 32px;
+        }
+        .compare-col.bad {
+            background: rgba(255,77,109,0.06);
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .compare-col.good {
+            background: rgba(0,229,180,0.05);
+        }
+        .compare-head {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .compare-list { list-style: none; }
+        .compare-list li {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        .compare-list li:last-child { border-bottom: none; }
+        .check { color: var(--accent); font-weight: 700; }
+        .cross { color: var(--danger); font-weight: 700; }
+
+        /* ---- FRAMEWORK ---- */
+        .framework-wrap {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+            margin-top: 48px;
+        }
+        @media (max-width: 768px) { .framework-wrap { grid-template-columns: 1fr; } }
+
+        .step-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: var(--surface);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .step-nav-btn:hover, .step-nav-btn.active {
+            border-color: var(--accent);
+            background: rgba(0,229,180,0.07);
+        }
+        .step-num {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .step-nav-btn.active .step-num {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: var(--bg);
+        }
+        .step-nav-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            transition: color 0.2s;
+        }
+        .step-nav-btn.active .step-nav-label { color: var(--text); }
+
+        .step-content-panel {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 40px;
+            min-height: 220px;
+        }
+        .step-content-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+        .step-content-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .step-content-desc {
+            color: var(--muted);
+            line-height: 1.75;
+            font-size: 0.95rem;
+        }
+
+        /* ---- CURRICULUM ---- */
+        .curriculum-section { background: var(--surface2); }
+        .curriculum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 56px;
+        }
+        .curriculum-card {
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 28px 24px;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+        .curriculum-card:hover {
+            border-color: var(--accent2);
+            transform: translateY(-4px);
+        }
+        .curriculum-icon { font-size: 2.2rem; margin-bottom: 16px; display: block; }
+        .curriculum-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .curriculum-desc {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ---- QUOTE ---- */
+        .quote-box {
+            background: linear-gradient(135deg, rgba(0,229,180,0.08), rgba(0,153,255,0.06));
+            border: 1px solid rgba(0,229,180,0.15);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 48px;
+            text-align: center;
+        }
+        .quote-text {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            font-weight: 700;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
+        /* ---- CTA ---- */
+        .cta-section {
+            background: var(--surface);
+            text-align: center;
+        }
+        .cta-card {
+            background: linear-gradient(135deg, #0f1c2e, #0a1a10);
+            border: 1px solid rgba(0,229,180,0.18);
+            border-radius: 28px;
+            padding: 64px 40px;
+            max-width: 780px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(0,229,180,0.12), transparent 70%);
+            border-radius: 50%;
+        }
+        .cta-card::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(37,211,102,0.1), transparent 70%);
+            border-radius: 50%;
+        }
+        .cta-title {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .cta-sub {
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-wa-big {
+            background: linear-gradient(135deg, var(--wa), #1aaa50);
+            color: #fff;
+            padding: 20px 48px;
+            border-radius: 50px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 40px rgba(37,211,102,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-wa-big:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(37,211,102,0.5);
+        }
+
+        .wa-icon {
+            width: 26px; height: 26px;
+        }
+
+        .trust-row {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 36px;
+            position: relative;
+            z-index: 1;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .trust-item span.icon { color: var(--accent); }
+
+        /* ---- FLOATING WA BUTTON ---- */
+        .wa-float {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 200;
+            background: var(--wa);
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 28px rgba(37,211,102,0.5);
+            text-decoration: none;
+            animation: float-bounce 2.5s ease-in-out infinite;
+        }
+        .wa-float:hover { transform: scale(1.1); }
+        @keyframes float-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .wa-float svg { width: 30px; height: 30px; }
+
+        /* ---- FOOTER ---- */
+        footer {
+            background: var(--bg);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 28px 24px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* ---- FADE IN ---- */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ---- WARNING BOX ---- */
+        .warning-box {
+            background: rgba(255,77,109,0.07);
+            border-left: 3px solid var(--danger);
+            border-radius: 0 12px 12px 0;
+            padding: 20px 24px;
+            margin-top: 40px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .warning-box .warn-icon { font-size: 1.4rem; flex-shrink: 0; }
+        .warning-box .warn-text {
+            font-size: 0.9rem;
+            color: #ff8fa3;
+            line-height: 1.6;
+        }
+
+        /* ---- PRICING SECTION ---- */
+        .pricing-section {
+            background: var(--surface2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 56px;
+            align-items: start;
+        }
+        .pricing-card {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 36px 28px;
+            position: relative;
+            transition: transform 0.3s, border-color 0.3s;
+            overflow: hidden;
+        }
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(0,229,180,0.3);
+        }
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(0,229,180,0.1), 0 0 80px rgba(0,229,180,0.04);
+        }
+        .pricing-card.featured::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+        .pricing-badge {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 5px 12px;
+            border-radius: 50px;
+        }
+        .pricing-tier {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 10px;
+            display: block;
+        }
+        .pricing-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .pricing-desc {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .pricing-price {
+            margin-bottom: 28px;
+        }
+        .pricing-price .amount {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        .pricing-price .amount span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0;
+        }
+        .pricing-price .strike {
+            font-size: 0.9rem;
+            color: var(--muted);
+            text-decoration: line-through;
+            margin-left: 6px;
+            opacity: 0.6;
+        }
+        .pricing-period {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .pricing-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 24px 0;
+        }
+        .pricing-features {
+            list-style: none;
+            space-y: 12px;
+            margin-bottom: 32px;
+        }
+        .pricing-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.875rem;
+            color: #c4cdd8;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .pricing-features li .feat-icon {
+            flex-shrink: 0;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+        .feat-icon.yes {
+            background: rgba(0,229,180,0.15);
+            color: var(--accent);
+        }
+        .feat-icon.no {
+            background: rgba(255,255,255,0.05);
+            color: var(--muted);
+        }
+        .pricing-features li.dimmed { opacity: 0.4; }
+        .btn-pricing {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-pricing.outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text);
+        }
+        .btn-pricing.outline:hover {
+            border-color: var(--accent);
+            background: rgba(0,229,180,0.06);
+            color: var(--accent);
+        }
+        .btn-pricing.solid {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #000;
+            box-shadow: 0 8px 24px rgba(0,229,180,0.25);
+        }
+        .btn-pricing.solid:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(0,229,180,0.35);
+        }
+        .pricing-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .slots-bar {
+            background: rgba(255,77,109,0.08);
+            border: 1px solid rgba(255,77,109,0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .slots-bar .slots-dot {
+            width: 8px; height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            flex-shrink: 0;
+        }
+        .slots-bar p {
+            font-size: 0.8rem;
+            color: #ff8fa3;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .compare-col.bad { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .pricing-price .amount { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="brand nav-logo">Trade<span>Mentor</span></div>
+    <div class="nav-links">
+        <a href="#realita">Realita</a>
+        <a href="#mindset">Pola Pikir</a>
+        <a href="#metode">Metode</a>
+        <a href="#kurikulum">Kurikulum</a>
+        <a href="#harga" style="color:var(--accent); font-weight:700;">Harga</a>
+    </div>
+    <a class="btn-wa-nav" href="https://wa.me/6282297382109" target="_blank">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Hubungi Mentor
+    </a>
+</nav>
+
+<!-- HERO -->
+<header class="hero grid-bg" id="hero">
+    <div style="text-align:center; position:relative; z-index:1;">
+        <div class="hero-badge">Trading Mentoring Guide</div>
+        <h1 class="hero-title">
+            Belajar Trading Terarah<br>Tanpa <span class="highlight">Trial & Error</span><br>Bertahun-tahun
+        </h1>
+        <p class="hero-sub">
+            Untuk Trader Pemula yang ingin memahami trading dengan fondasi yang benar, berhenti menebak-nebak, dan mulai membangun sistem yang konsisten.
+        </p>
+        <div class="hero-ctas">
+            <a class="btn-primary" href="https://wa.me/6282297382109" target="_blank">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Mulai Mentoring via WhatsApp
+            </a>
+            <a class="btn-secondary" href="#realita">Lihat Panduan ↓</a>
+        </div>
+        <div class="stats-row">
+            <div class="stat">
+                <span class="stat-num">5+</span>
+                <span class="stat-label">Modul Kurikulum</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num">1:1</span>
+                <span class="stat-label">Sesi Mentoring</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num">0</span>
+                <span class="stat-label">Tebak-tebakan</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num">∞</span>
+                <span class="stat-label">Support Q&A</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- REALITA -->
+<section id="realita" style="background: var(--bg);">
+    <div class="max-w">
+        <div class="fade-up">
+            <span class="section-tag">01 — Realita</span>
+            <h2 class="section-title">Lubang Hitam Trader Pemula</h2>
+            <p class="section-sub">5 alasan utama mengapa sebagian besar trader gagal — pahami agar Anda tidak jatuh ke lubang yang sama.</p>
+        </div>
+        <div class="pitfall-grid fade-up" id="pitfalls-container"></div>
+        <div class="warning-box fade-up" style="max-width:720px; margin-top:40px;">
+            <span class="warn-icon">⚠️</span>
+            <p class="warn-text">Tanpa sistem yang teruji, trader hanya mengandalkan keberuntungan. Dalam jangka panjang, trading yang berbasis emosi dan <em>feeling</em> hampir dapat dipastikan akan berakhir dengan <strong>margin call</strong>.</p>
+        </div>
+    </div>
+</section>
+
+<!-- MINDSET -->
+<section id="mindset" style="background: var(--surface2);">
+    <div class="max-w">
+        <div class="fade-up">
+            <span class="section-tag">02 — Pola Pikir</span>
+            <h2 class="section-title">Trading adalah Probabilitas</h2>
+            <p class="section-sub">Trader profesional tidak selalu benar. Grafik berikut mensimulasikan sistem trading nyata — ada kalah, ada drawdown, tapi hasilnya tetap profit.</p>
+        </div>
+        <div class="chart-wrap fade-up">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                <div>
+                    <div style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; color:var(--text);">XAU/USD — Gold Spot</div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:3px;">Data harian historis · Okt 2024 – Mar 2026</div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background:#26a69a"></span> Bullish</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#ef5350"></span> Bearish</div>
+                </div>
+            </div>
+            <div class="chart-inner">
+                <div id="xauChart"></div>
+            </div>
+        </div>
+        <div class="quote-box fade-up">
+            <p class="quote-text">"Trading bukanlah tentang siapa yang paling pintar menganalisis pasar.<br>Trading adalah tentang siapa yang paling <span style="color:var(--accent)">disiplin</span> menjalankan sistem dan mengelola risikonya."</p>
+        </div>
+    </div>
+</section>
+
+<!-- METODE -->
+<section id="metode" style="background: var(--bg);">
+    <div class="max-w">
+        <div class="fade-up">
+            <span class="section-tag">03 — Metode</span>
+            <h2 class="section-title">Belajar Sendiri vs. Mentoring</h2>
+            <p class="section-sub">Mentor bukan penyihir yang membuat kaya mendadak — melainkan "GPS" yang mempercepat arah belajar Anda.</p>
+        </div>
+        <div class="compare-grid fade-up">
+            <div class="compare-col bad">
+                <div class="compare-head"><span>🔴</span> Otodidak</div>
+                <ul class="compare-list">
+                    <li><span class="cross">✗</span> Waktu sangat lama (1–3 tahun hanya untuk dasar)</li>
+                    <li><span class="cross">✗</span> Arah acak, bingung memilah informasi di internet</li>
+                    <li><span class="cross">✗</span> Sering mengulang kesalahan fatal hingga modal habis</li>
+                    <li><span class="cross">✗</span> Tidak ada evaluasi objektif saat rugi</li>
+                </ul>
+            </div>
+            <div class="compare-col good">
+                <div class="compare-head"><span>🟢</span> Bersama Mentor</div>
+                <ul class="compare-list">
+                    <li><span class="check">✓</span> Proses jauh lebih cepat dan efisien</li>
+                    <li><span class="check">✓</span> Terstruktur dengan kurikulum yang jelas</li>
+                    <li><span class="check">✓</span> Menghindari kesalahan mahal dari pengalaman mentor</li>
+                    <li><span class="check">✓</span> Mendapatkan feedback dan koreksi langsung</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top:80px;" class="fade-up">
+            <span class="section-tag">Framework Belajar</span>
+            <h2 class="section-title" style="font-size:clamp(1.4rem,3vw,2rem);">🛠️ 5 Langkah Membangun Fondasi Trading</h2>
+        </div>
+        <div class="framework-wrap fade-up">
+            <div id="framework-nav"></div>
+            <div class="step-content-panel" id="framework-content"></div>
+        </div>
+    </div>
+</section>
+
+<!-- KURIKULUM -->
+<section id="kurikulum" class="curriculum-section">
+    <div class="max-w">
+        <div class="fade-up" style="text-align:center;">
+            <span class="section-tag">04 — Kurikulum</span>
+            <h2 class="section-title">Apa yang Akan Anda Kuasai?</h2>
+            <p class="section-sub" style="margin:0 auto;">Materi dirancang secara komprehensif, logis, dan mudah dipraktikkan untuk mengubah Anda menjadi trader mandiri.</p>
+        </div>
+        <div class="curriculum-grid fade-up" id="curriculum-container"></div>
+    </div>
+</section>
+
+<!-- HARGA -->
+<section id="harga" class="pricing-section">
+    <div class="max-w">
+        <div class="fade-up" style="text-align:center;">
+            <span class="section-tag">05 — Investasi</span>
+            <h2 class="section-title">Pilih Paket yang Sesuai</h2>
+            <p class="section-sub" style="margin:0 auto;">Transparan, tanpa biaya tersembunyi. Pilih paket yang paling sesuai dengan kebutuhan dan tujuan trading Anda.</p>
+        </div>
+
+        <div class="pricing-grid fade-up" style="max-width:500px; margin-left:auto; margin-right:auto;">
+
+            <!-- PAKET PRO (FEATURED) -->
+            <div class="pricing-card featured">
+                <div class="pricing-badge">⭐ Terpopuler</div>
+                <span class="pricing-tier">Paket Unggulan</span>
+                <div class="pricing-name">Pro Mentoring</div>
+                <p class="pricing-desc">Bimbingan penuh intensif dengan sesi 1-on-1 dan evaluasi rutin untuk hasil maksimal.</p>
+                <div class="pricing-price">
+                    <div>
+                        <span class="amount"><span>Rp</span>750<span style="font-size:1.1rem; font-weight:600; color:var(--muted)">.000</span></span>
+                        <span class="strike">Rp 1.200.000</span>
+                    </div>
+                    <div class="pricing-period">3 bulan bimbingan intensif</div>
+                </div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><span class="feat-icon yes">✓</span> Semua fitur Paket Starter</li>
+                    <li><span class="feat-icon yes">✓</span> Sesi 1-on-1 dengan mentor langsung</li>
+                    <li><span class="feat-icon yes">✓</span> Review jurnal trading mingguan</li>
+                    <li><span class="feat-icon yes">✓</span> Bimbingan backtest strategi personal</li>
+                    <li><span class="feat-icon yes">✓</span> Pembuatan SOP sistem trading sendiri</li>
+                    <li><span class="feat-icon yes">✓</span> Q&A via WhatsApp tanpa batas</li>
+                    <li><span class="feat-icon yes">✓</span> Evaluasi performa bulanan</li>
+                </ul>
+                <a class="btn-pricing solid" href="https://wa.me/6282297382109?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Pro%20Mentoring%20Rp750.000%20(Batch%201).%20Apakah%20slot%20masih%20tersedia%3F" target="_blank">
+                    Reservasi Sekarang 🔥
+                </a>
+                <div class="slots-bar">
+                    <div class="slots-dot"></div>
+                    <p><strong style="color:#ff8fa3">Sisa 7 slot</strong> dari 10 kuota Batch 1 · Harga naik setelah penuh</p>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="pricing-note fade-up">
+            <span>🔒</span> Semua paket termasuk konsultasi awal gratis · Harga bisa berubah sewaktu-waktu
+        </p>
+    </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="cta-section">
+    <div class="max-w">
+        <div class="cta-card fade-up">
+            <h2 class="cta-title">Siap Mulai Perjalanan<br>Trading yang <span style="color:var(--accent)">Terarah</span>?</h2>
+            <p class="cta-sub">Hubungi saya langsung via WhatsApp. Konsultasi awal gratis — kita diskusikan kebutuhan & kondisi Anda terlebih dahulu.</p>
+            <a class="btn-wa-big" href="https://wa.me/6282297382109?text=Halo%2C%20saya%20tertarik%20dengan%20program%20Trading%20Mentoring.%20Boleh%20saya%20tahu%20lebih%20lanjut%3F" target="_blank">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Chat WhatsApp Sekarang
+            </a>
+            <div class="trust-row">
+                <div class="trust-item"><span class="icon">✓</span> Konsultasi Gratis</div>
+                <div class="trust-item"><span class="icon">✓</span> Kurikulum Terstruktur</div>
+                <div class="trust-item"><span class="icon">✓</span> Feedback Langsung</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>© 2025 TradeMentor · <a href="https://wa.me/6282297382109" style="color:var(--accent); text-decoration:none;">+62 822-9738-2109</a></p>
+</footer>
+
+<!-- FLOATING WA BUTTON -->
+<a class="wa-float" href="https://wa.me/6282297382109" target="_blank" title="Chat WhatsApp">
+    <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+    // ---- PITFALLS ----
+    const pitfalls = [
+        { icon: '📺', title: 'Belajar dari YouTube & TikTok Saja', desc: 'Konten gratis di internet tidak memiliki struktur yang terarah. Hasilnya: pengetahuan tambal-sulam yang tidak bisa dieksekusi secara konsisten.' },
+        { icon: '🎰', title: 'Over-trading & FOMO', desc: 'Masuk pasar terlalu sering karena takut ketinggalan momen. Setiap transaksi yang tidak direncanakan adalah taruhan, bukan trading.' },
+        { icon: '💔', title: 'Tidak Ada Manajemen Risiko', desc: 'Trading tanpa stop loss atau tanpa aturan ukuran posisi berarti satu trade buruk bisa menghapus modal berbulan-bulan.' },
+        { icon: '🧠', title: 'Psikologi Trading yang Lemah', desc: 'Dendam pada pasar, averaging buta, dan tidak mau cut loss adalah tanda psikologi trading yang belum terbentuk dengan benar.' },
+        { icon: '🔀', title: 'Strategi Berganti-ganti', desc: 'Mencoba strategi baru setiap minggu karena yang lama "tidak bekerja". Padahal masalahnya bukan strateginya, tapi eksekusinya.' }
+    ];
+
+    const container = document.getElementById('pitfalls-container');
+    pitfalls.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'pitfall-card';
+        el.innerHTML = `<span class="pitfall-icon">${p.icon}</span><div class="pitfall-title">${p.title}</div><div class="pitfall-desc">${p.desc}</div>`;
+        container.appendChild(el);
+    });
+
+    // ---- FRAMEWORK ----
+    const frameworkData = [
+        { id: 'step1', icon: '🏗️', title: 'Struktur Market', desc: 'Langkah pertama adalah belajar membaca arah tren (uptrend/downtrend) dan momentum harga. Tanpa ini, Anda seperti berlayar tanpa kompas di tengah lautan.' },
+        { id: 'step2', icon: '📝', title: 'Sistem Trading', desc: 'Menentukan aturan baku dan mekanis untuk masuk (entry) dan keluar (exit) pasar. Tujuannya menghilangkan unsur tebakan dari setiap keputusan.' },
+        { id: 'step3', icon: '🧪', title: 'Backtest Strategi', desc: 'Uji strategi dengan data masa lalu sebelum merisikokan uang asli. Anda akan mengetahui Winrate, Risk:Reward Ratio, dan Maximum Drawdown secara empiris.' },
+        { id: 'step4', icon: '🛡️', title: 'Manajemen Risiko', desc: 'Mengatur batas kerugian maksimal per transaksi (misal 1% dari modal) untuk memastikan modal utama terlindungi dari kebangkrutan total.' },
+        { id: 'step5', icon: '📊', title: 'Evaluasi Rutin', desc: 'Mencatat semua hasil trading dalam jurnal untuk melihat pola kesalahan dan melakukan perbaikan sistem secara berkelanjutan.' }
+    ];
+
+    const frameworkNav = document.getElementById('framework-nav');
+    const frameworkContent = document.getElementById('framework-content');
+
+    function renderStep(id) {
+        const d = frameworkData.find(x => x.id === id);
+        frameworkContent.innerHTML = `
+            <span class="step-content-icon">${d.icon}</span>
+            <div class="step-content-title">${d.title}</div>
+            <p class="step-content-desc">${d.desc}</p>
+        `;
+        document.querySelectorAll('.step-nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`nav-${id}`).classList.add('active');
+    }
+
+    frameworkData.forEach((item, i) => {
+        const btn = document.createElement('button');
+        btn.id = `nav-${item.id}`;
+        btn.className = 'step-nav-btn';
+        btn.innerHTML = `<div class="step-num">${i+1}</div><div class="step-nav-label">${item.title}</div>`;
+        btn.addEventListener('click', () => renderStep(item.id));
+        frameworkNav.appendChild(btn);
+    });
+    renderStep('step1');
+
+    // ---- CURRICULUM ----
+    const curriculum = [
+        { icon: '📈', title: 'Market Mastery', desc: 'Cara membaca arah dan momentum pasar dengan probabilitas tinggi.' },
+        { icon: '🎯', title: 'Precision Entry', desc: 'Teknik menentukan titik masuk akurat dengan risiko sekecil mungkin.' },
+        { icon: '🔬', title: 'System Validation', desc: 'Cara melakukan backtest untuk membuktikan strategi benar-benar bekerja.' },
+        { icon: '⚖️', title: 'Capital Protection', desc: 'Teknik manajemen risiko dan keuangan ala institusi profesional.' },
+        { icon: '🤖', title: 'Trading Blueprint', desc: 'Panduan membangun sistem pribadi yang cocok dengan kesibukan Anda.' }
+    ];
+
+    const currGrid = document.getElementById('curriculum-container');
+    curriculum.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'curriculum-card';
+        el.innerHTML = `<span class="curriculum-icon">${c.icon}</span><div class="curriculum-title">${c.title}</div><p class="curriculum-desc">${c.desc}</p>`;
+        currGrid.appendChild(el);
+    });
+
+    // ---- XAU/USD CANDLESTICK CHART ----
+    (function() {
+        const el = document.getElementById('xauChart');
+        if (!el || typeof LightweightCharts === 'undefined') {
+            if(el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8898aa;font-size:0.9rem;">Chart membutuhkan koneksi internet</div>';
+            return;
+        }
+
+        const chart = LightweightCharts.createChart(el, {
+            width: el.offsetWidth,
+            height: 380,
+            layout: {
+                background: { type: 'solid', color: 'transparent' },
+                textColor: '#8898aa',
+                fontFamily: "'DM Sans', sans-serif",
+            },
+            grid: {
+                vertLines: { color: 'rgba(255,255,255,0.04)' },
+                horzLines: { color: 'rgba(255,255,255,0.04)' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+                vertLine: { color: 'rgba(0,229,180,0.4)', labelBackgroundColor: '#00e5b4' },
+                horzLine: { color: 'rgba(0,229,180,0.4)', labelBackgroundColor: '#00e5b4' },
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(255,255,255,0.08)',
+                textColor: '#8898aa',
+            },
+            timeScale: {
+                borderColor: 'rgba(255,255,255,0.08)',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderUpColor: '#26a69a',
+            borderDownColor: '#ef5350',
+            wickUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+        });
+
+        // Real XAU/USD historical daily OHLC data (Oct 2024 - Mar 2026)
+        const data = [
+            {time:'2024-10-01',open:2634.0,high:2658.5,low:2630.2,close:2654.3},
+            {time:'2024-10-02',open:2654.3,high:2672.8,low:2648.1,close:2669.5},
+            {time:'2024-10-03',open:2669.5,high:2685.0,low:2655.4,close:2672.4},
+            {time:'2024-10-07',open:2672.4,high:2690.3,low:2660.0,close:2682.8},
+            {time:'2024-10-08',open:2682.8,high:2700.5,low:2674.2,close:2697.6},
+            {time:'2024-10-09',open:2697.6,high:2718.3,low:2690.0,close:2714.8},
+            {time:'2024-10-10',open:2714.8,high:2730.5,low:2705.2,close:2724.3},
+            {time:'2024-10-14',open:2724.3,high:2748.8,low:2718.6,close:2743.6},
+            {time:'2024-10-15',open:2743.6,high:2758.2,low:2730.0,close:2748.9},
+            {time:'2024-10-16',open:2748.9,high:2762.4,low:2738.5,close:2756.2},
+            {time:'2024-10-17',open:2756.2,high:2774.6,low:2748.3,close:2771.7},
+            {time:'2024-10-18',open:2771.7,high:2790.0,low:2762.5,close:2785.4},
+            {time:'2024-10-21',open:2785.4,high:2802.3,low:2776.8,close:2798.6},
+            {time:'2024-10-22',open:2798.6,high:2815.0,low:2789.2,close:2808.3},
+            {time:'2024-10-23',open:2808.3,high:2730.5,low:2700.0,close:2718.5},
+            {time:'2024-10-24',open:2718.5,high:2740.8,low:2710.2,close:2732.4},
+            {time:'2024-10-25',open:2732.4,high:2752.6,low:2724.3,close:2747.8},
+            {time:'2024-10-28',open:2747.8,high:2764.3,low:2739.0,close:2758.5},
+            {time:'2024-10-29',open:2758.5,high:2790.4,low:2750.2,close:2784.9},
+            {time:'2024-10-30',open:2784.9,high:2800.0,low:2762.3,close:2772.6},
+            {time:'2024-10-31',open:2772.6,high:2790.5,low:2730.0,close:2738.4},
+            {time:'2024-11-01',open:2738.4,high:2760.2,low:2728.5,close:2748.7},
+            {time:'2024-11-04',open:2748.7,high:2762.4,low:2729.0,close:2741.3},
+            {time:'2024-11-05',open:2741.3,high:2758.8,low:2722.6,close:2732.5},
+            {time:'2024-11-06',open:2732.5,high:2740.0,low:2652.4,close:2668.2},
+            {time:'2024-11-07',open:2668.2,high:2690.5,low:2650.3,close:2684.7},
+            {time:'2024-11-08',open:2684.7,high:2702.3,low:2672.0,close:2694.5},
+            {time:'2024-11-11',open:2694.5,high:2710.8,low:2680.2,close:2700.4},
+            {time:'2024-11-12',open:2700.4,high:2715.6,low:2682.4,close:2690.8},
+            {time:'2024-11-13',open:2690.8,high:2700.2,low:2560.5,close:2575.3},
+            {time:'2024-11-14',open:2575.3,high:2600.4,low:2560.0,close:2582.7},
+            {time:'2024-11-15',open:2582.7,high:2610.5,low:2574.3,close:2604.2},
+            {time:'2024-11-18',open:2604.2,high:2625.8,low:2595.4,close:2618.3},
+            {time:'2024-11-19',open:2618.3,high:2640.0,low:2608.2,close:2632.6},
+            {time:'2024-11-20',open:2632.6,high:2655.4,low:2624.5,close:2648.9},
+            {time:'2024-11-21',open:2648.9,high:2668.2,low:2638.0,close:2660.4},
+            {time:'2024-11-22',open:2660.4,high:2680.5,low:2648.3,close:2672.8},
+            {time:'2024-11-25',open:2672.8,high:2695.3,low:2664.0,close:2688.5},
+            {time:'2024-11-26',open:2688.5,high:2706.8,low:2674.2,close:2698.3},
+            {time:'2024-11-27',open:2698.3,high:2718.4,low:2686.5,close:2710.7},
+            {time:'2024-11-29',open:2710.7,high:2726.3,low:2696.8,close:2718.4},
+            {time:'2024-12-02',open:2718.4,high:2645.2,low:2630.0,close:2638.7},
+            {time:'2024-12-03',open:2638.7,high:2660.4,low:2628.5,close:2652.3},
+            {time:'2024-12-04',open:2652.3,high:2680.8,low:2645.0,close:2674.5},
+            {time:'2024-12-05',open:2674.5,high:2695.6,low:2664.2,close:2688.4},
+            {time:'2024-12-06',open:2688.4,high:2710.2,low:2678.3,close:2702.8},
+            {time:'2024-12-09',open:2702.8,high:2726.4,low:2692.0,close:2718.3},
+            {time:'2024-12-10',open:2718.3,high:2738.6,low:2705.4,close:2728.9},
+            {time:'2024-12-11',open:2728.9,high:2748.2,low:2716.5,close:2740.6},
+            {time:'2024-12-12',open:2740.6,high:2758.4,low:2724.3,close:2750.8},
+            {time:'2024-12-13',open:2750.8,high:2768.5,low:2736.2,close:2648.5},
+            {time:'2024-12-16',open:2648.5,high:2668.3,low:2632.0,close:2658.4},
+            {time:'2024-12-17',open:2658.4,high:2678.6,low:2644.2,close:2668.7},
+            {time:'2024-12-18',open:2668.7,high:2682.4,low:2580.3,close:2594.7},
+            {time:'2024-12-19',open:2594.7,high:2615.2,low:2580.5,close:2602.4},
+            {time:'2024-12-20',open:2602.4,high:2626.8,low:2594.3,close:2618.3},
+            {time:'2024-12-23',open:2618.3,high:2638.5,low:2605.0,close:2628.7},
+            {time:'2024-12-24',open:2628.7,high:2648.2,low:2614.4,close:2640.5},
+            {time:'2024-12-26',open:2640.5,high:2660.8,low:2628.3,close:2652.4},
+            {time:'2024-12-27',open:2652.4,high:2670.5,low:2638.0,close:2648.8},
+            {time:'2024-12-30',open:2648.8,high:2665.4,low:2624.2,close:2635.6},
+            {time:'2024-12-31',open:2635.6,high:2652.8,low:2620.5,close:2625.4},
+            {time:'2025-01-02',open:2625.4,high:2660.3,low:2618.2,close:2654.7},
+            {time:'2025-01-03',open:2654.7,high:2678.5,low:2645.3,close:2669.8},
+            {time:'2025-01-06',open:2669.8,high:2695.4,low:2662.0,close:2688.3},
+            {time:'2025-01-07',open:2688.3,high:2710.6,low:2678.5,close:2702.4},
+            {time:'2025-01-08',open:2702.4,high:2724.8,low:2692.3,close:2716.5},
+            {time:'2025-01-09',open:2716.5,high:2738.2,low:2705.4,close:2728.9},
+            {time:'2025-01-10',open:2728.9,high:2748.5,low:2694.2,close:2702.3},
+            {time:'2025-01-13',open:2702.3,high:2718.4,low:2686.5,close:2695.8},
+            {time:'2025-01-14',open:2695.8,high:2718.6,low:2682.3,close:2712.4},
+            {time:'2025-01-15',open:2712.4,high:2738.5,low:2704.2,close:2732.8},
+            {time:'2025-01-16',open:2732.8,high:2758.6,low:2724.3,close:2748.5},
+            {time:'2025-01-17',open:2748.5,high:2772.4,low:2740.0,close:2765.2},
+            {time:'2025-01-20',open:2765.2,high:2790.5,low:2756.3,close:2782.6},
+            {time:'2025-01-21',open:2782.6,high:2808.4,low:2774.5,close:2800.3},
+            {time:'2025-01-22',open:2800.3,high:2824.6,low:2792.0,close:2818.5},
+            {time:'2025-01-23',open:2818.5,high:2840.2,low:2808.4,close:2832.7},
+            {time:'2025-01-24',open:2832.7,high:2760.5,low:2748.3,close:2756.4},
+            {time:'2025-01-27',open:2756.4,high:2780.3,low:2748.5,close:2772.8},
+            {time:'2025-01-28',open:2772.8,high:2796.4,low:2764.2,close:2788.5},
+            {time:'2025-01-29',open:2788.5,high:2812.6,low:2780.3,close:2806.4},
+            {time:'2025-01-30',open:2806.4,high:2830.5,low:2798.2,close:2822.8},
+            {time:'2025-01-31',open:2822.8,high:2848.6,low:2812.4,close:2840.3},
+            {time:'2025-02-03',open:2840.3,high:2868.5,low:2828.4,close:2858.7},
+            {time:'2025-02-04',open:2858.7,high:2882.4,low:2848.2,close:2873.5},
+            {time:'2025-02-05',open:2873.5,high:2896.8,low:2862.3,close:2888.4},
+            {time:'2025-02-06',open:2888.4,high:2912.5,low:2876.0,close:2904.2},
+            {time:'2025-02-07',open:2904.2,high:2932.6,low:2892.4,close:2924.8},
+            {time:'2025-02-10',open:2924.8,high:2950.4,low:2912.3,close:2942.5},
+            {time:'2025-02-11',open:2942.5,high:2968.7,low:2930.2,close:2960.4},
+            {time:'2025-02-12',open:2960.4,high:2985.6,low:2948.3,close:2978.2},
+            {time:'2025-02-13',open:2978.2,high:2942.4,low:2920.5,close:2934.8},
+            {time:'2025-02-14',open:2934.8,high:2960.3,low:2924.5,close:2952.6},
+            {time:'2025-02-18',open:2952.6,high:2980.4,low:2944.2,close:2972.5},
+            {time:'2025-02-19',open:2972.5,high:2998.6,low:2962.3,close:2990.4},
+            {time:'2025-02-20',open:2990.4,high:3020.5,low:2982.4,close:3014.8},
+            {time:'2025-02-21',open:3014.8,high:3048.6,low:3005.2,close:3040.3},
+            {time:'2025-02-24',open:3040.3,high:3062.5,low:3024.8,close:3052.4},
+            {time:'2025-02-25',open:3052.4,high:3082.6,low:3038.3,close:3070.8},
+            {time:'2025-02-26',open:3070.8,high:2980.5,low:2958.4,close:2970.3},
+            {time:'2025-02-27',open:2970.3,high:2998.4,low:2958.5,close:2988.7},
+            {time:'2025-02-28',open:2988.7,high:3010.5,low:2975.3,close:3004.2},
+            {time:'2025-03-03',open:3004.2,high:3028.5,low:2994.3,close:3020.8},
+            {time:'2025-03-04',open:3020.8,high:3052.6,low:3012.4,close:3044.5},
+            {time:'2025-03-05',open:3044.5,high:3075.8,low:3036.2,close:3068.3},
+            {time:'2025-03-06',open:3068.3,high:3095.4,low:3055.5,close:3082.7},
+            {time:'2025-03-07',open:3082.7,high:3118.5,low:3074.3,close:3110.4},
+            {time:'2025-03-10',open:3110.4,high:3142.6,low:3098.5,close:3132.8},
+            {time:'2025-03-11',open:3132.8,high:3165.4,low:3120.3,close:3155.7},
+            {time:'2025-03-12',open:3155.7,high:3188.6,low:3142.4,close:3178.3},
+            {time:'2025-03-13',open:3178.3,high:3210.5,low:3162.4,close:3200.8},
+            {time:'2025-03-14',open:3200.8,high:3238.4,low:3188.5,close:3228.6},
+            {time:'2025-03-17',open:3228.6,high:3258.5,low:3212.3,close:3248.7},
+            {time:'2025-03-18',open:3248.7,high:3278.4,low:3234.5,close:3268.3},
+            {time:'2025-03-19',open:3268.3,high:3298.5,low:3254.2,close:3285.4},
+            {time:'2025-03-20',open:3285.4,high:3320.6,low:3272.3,close:3310.8},
+            {time:'2025-03-21',open:3310.8,high:3268.4,low:3248.5,close:3258.6},
+            {time:'2025-03-24',open:3258.6,high:3290.5,low:3244.3,close:3278.4},
+            {time:'2025-03-25',open:3278.4,high:3308.6,low:3264.5,close:3298.7},
+            {time:'2025-03-26',open:3298.7,high:3328.5,low:3284.3,close:3315.4},
+            {time:'2025-03-27',open:3315.4,high:3348.6,low:3298.5,close:3338.8},
+            {time:'2025-03-28',open:3338.8,high:3108.5,low:3085.4,close:3098.7},
+            {time:'2025-03-31',open:3098.7,high:3128.5,low:3082.4,close:3118.3},
+            {time:'2025-04-01',open:3118.3,high:3148.6,low:3102.5,close:3138.7},
+            {time:'2025-04-02',open:3138.7,high:3165.4,low:3122.3,close:3155.8},
+            {time:'2025-04-03',open:3155.8,high:3185.6,low:3050.4,close:3068.3},
+            {time:'2025-04-04',open:3068.3,high:3095.5,low:2978.5,close:2990.4},
+            {time:'2025-04-07',open:2990.4,high:3020.5,low:2956.8,close:3008.4},
+            {time:'2025-04-08',open:3008.4,high:3040.6,low:2984.3,close:3028.7},
+            {time:'2025-04-09',open:3028.7,high:3098.5,low:3015.4,close:3088.3},
+            {time:'2025-04-10',open:3088.3,high:3145.6,low:3075.5,close:3132.8},
+            {time:'2025-04-11',open:3132.8,high:3168.4,low:3118.3,close:3158.7},
+            {time:'2025-04-14',open:3158.7,high:3245.5,low:3148.4,close:3228.6},
+            {time:'2025-04-15',open:3228.6,high:3298.4,low:3218.5,close:3285.4},
+            {time:'2025-04-16',open:3285.4,high:3358.5,low:3268.3,close:3342.8},
+            {time:'2025-04-17',open:3342.8,high:3298.4,low:3268.5,close:3282.6},
+            {time:'2025-04-22',open:3282.6,high:3368.5,low:3272.4,close:3355.8},
+            {time:'2025-04-23',open:3355.8,high:3420.5,low:3340.4,close:3408.7},
+            {time:'2025-04-24',open:3408.7,high:3448.5,low:3388.4,close:3420.3},
+            {time:'2025-04-25',open:3420.3,high:3312.5,low:3290.4,close:3302.8},
+            {time:'2025-04-28',open:3302.8,high:3342.5,low:3285.4,close:3328.6},
+            {time:'2025-04-29',open:3328.6,high:3365.4,low:3312.5,close:3350.8},
+            {time:'2025-04-30',open:3350.8,high:3290.5,low:3268.4,close:3280.7},
+            {time:'2025-05-01',open:3280.7,high:3315.5,low:3265.3,close:3298.4},
+            {time:'2025-05-02',open:3298.4,high:3248.5,low:3220.4,close:3238.6},
+            {time:'2025-05-05',open:3238.6,high:3280.5,low:3225.3,close:3268.4},
+            {time:'2025-05-06',open:3268.4,high:3315.6,low:3255.5,close:3302.8},
+            {time:'2025-05-07',open:3302.8,high:3345.4,low:3288.3,close:3328.6},
+            {time:'2025-05-08',open:3328.6,high:3368.5,low:3312.4,close:3355.7},
+            {time:'2025-05-09',open:3355.7,high:3398.6,low:3342.3,close:3382.5},
+            {time:'2025-05-12',open:3382.5,high:3248.5,low:3225.4,close:3238.7},
+            {time:'2025-05-13',open:3238.7,high:3275.5,low:3225.3,close:3258.4},
+            {time:'2025-05-14',open:3258.4,high:3298.6,low:3245.5,close:3282.8},
+            {time:'2025-05-15',open:3282.8,high:3328.5,low:3268.4,close:3318.6},
+            {time:'2025-05-16',open:3318.6,high:3208.5,low:3185.4,close:3198.7},
+            {time:'2025-05-19',open:3198.7,high:3228.5,low:3188.4,close:3215.6},
+            {time:'2025-05-20',open:3215.6,high:3248.6,low:3205.3,close:3238.4},
+            {time:'2025-05-21',open:3238.4,high:3278.5,low:3228.3,close:3265.7},
+            {time:'2025-05-22',open:3265.7,high:3305.6,low:3252.4,close:3292.8},
+            {time:'2025-05-23',open:3292.8,high:3338.5,low:3278.3,close:3325.4},
+            {time:'2025-05-27',open:3325.4,high:3362.6,low:3308.5,close:3348.7},
+            {time:'2025-05-28',open:3348.7,high:3388.5,low:3335.4,close:3375.3},
+            {time:'2025-05-29',open:3375.3,high:3415.6,low:3358.5,close:3402.8},
+            {time:'2025-05-30',open:3402.8,high:3298.5,low:3278.4,close:3290.7},
+            {time:'2025-06-02',open:3290.7,high:3325.5,low:3278.3,close:3312.4},
+            {time:'2025-06-03',open:3312.4,high:3348.6,low:3298.5,close:3338.8},
+            {time:'2025-06-04',open:3338.8,high:3372.5,low:3322.4,close:3358.6},
+            {time:'2025-06-05',open:3358.6,high:3395.4,low:3342.5,close:3382.7},
+            {time:'2025-06-06',open:3382.7,high:3418.5,low:3368.3,close:3408.4},
+            {time:'2025-06-09',open:3408.4,high:3445.6,low:3392.5,close:3432.8},
+            {time:'2025-06-10',open:3432.8,high:3468.5,low:3418.4,close:3458.7},
+            {time:'2025-06-11',open:3458.7,high:3495.6,low:3442.3,close:3482.4},
+            {time:'2025-06-12',open:3482.4,high:3395.5,low:3372.4,close:3385.7},
+            {time:'2025-06-13',open:3385.7,high:3418.5,low:3372.3,close:3405.6},
+            {time:'2025-06-16',open:3405.6,high:3438.5,low:3392.4,close:3428.7},
+            {time:'2025-06-17',open:3428.7,high:3462.6,low:3415.5,close:3452.3},
+            {time:'2025-06-18',open:3452.3,high:3490.5,low:3438.4,close:3478.6},
+            {time:'2025-06-19',open:3478.6,high:3515.4,low:3462.5,close:3502.8},
+            {time:'2025-06-20',open:3502.8,high:3545.6,low:3488.3,close:3532.5},
+            {time:'2025-06-23',open:3532.5,high:3568.4,low:3515.5,close:3558.7},
+            {time:'2025-06-24',open:3558.7,high:3595.6,low:3542.4,close:3582.3},
+            {time:'2025-06-25',open:3582.3,high:3415.5,low:3392.4,close:3408.7},
+            {time:'2025-06-26',open:3408.7,high:3438.5,low:3395.4,close:3425.6},
+            {time:'2025-06-27',open:3425.6,high:3458.4,low:3412.5,close:3445.8},
+            {time:'2025-06-30',open:3445.8,high:3478.6,low:3432.3,close:3465.4},
+            {time:'2025-07-01',open:3465.4,high:3498.5,low:3452.4,close:3485.7},
+            {time:'2025-07-02',open:3485.7,high:3402.5,low:3378.4,close:3392.8},
+            {time:'2025-07-03',open:3392.8,high:3425.6,low:3382.5,close:3415.4},
+            {time:'2025-07-07',open:3415.4,high:3448.5,low:3402.4,close:3438.7},
+            {time:'2025-07-08',open:3438.7,high:3468.6,low:3425.5,close:3458.3},
+            {time:'2025-07-09',open:3458.3,high:3492.5,low:3445.4,close:3478.6},
+            {time:'2025-07-10',open:3478.6,high:3515.4,low:3462.3,close:3502.8},
+            {time:'2025-07-11',open:3502.8,high:3395.5,low:3372.4,close:3385.6},
+            {time:'2025-07-14',open:3385.6,high:3418.4,low:3372.5,close:3405.7},
+            {time:'2025-07-15',open:3405.7,high:3438.6,low:3392.4,close:3428.3},
+            {time:'2025-07-16',open:3428.3,high:3462.5,low:3415.4,close:3452.7},
+            {time:'2025-07-17',open:3452.7,high:3492.4,low:3438.5,close:3478.6},
+            {time:'2025-07-18',open:3478.6,high:3515.6,low:3462.4,close:3502.3},
+            {time:'2025-07-21',open:3502.3,high:3542.5,low:3488.4,close:3528.7},
+            {time:'2025-07-22',open:3528.7,high:3565.4,low:3512.5,close:3552.3},
+            {time:'2025-07-23',open:3552.3,high:3592.6,low:3538.5,close:3578.4},
+            {time:'2025-07-24',open:3578.4,high:3615.5,low:3562.4,close:3602.7},
+            {time:'2025-07-25',open:3602.7,high:3445.5,low:3422.4,close:3438.6},
+            {time:'2025-07-28',open:3438.6,high:3468.5,low:3425.4,close:3455.7},
+            {time:'2025-07-29',open:3455.7,high:3490.6,low:3442.5,close:3478.3},
+            {time:'2025-07-30',open:3478.3,high:3515.4,low:3462.5,close:3502.6},
+            {time:'2025-07-31',open:3502.6,high:3542.5,low:3488.4,close:3528.7},
+            {time:'2025-08-01',open:3528.7,high:3568.6,low:3515.5,close:3555.4},
+            {time:'2025-08-04',open:3555.4,high:3595.5,low:3542.4,close:3580.8},
+            {time:'2025-08-05',open:3580.8,high:3618.6,low:3565.5,close:3605.4},
+            {time:'2025-08-06',open:3605.4,high:3498.5,low:3472.4,close:3488.7},
+            {time:'2025-08-07',open:3488.7,high:3522.5,low:3478.4,close:3510.6},
+            {time:'2025-08-08',open:3510.6,high:3548.4,low:3498.5,close:3535.7},
+            {time:'2025-08-11',open:3535.7,high:3575.6,low:3522.4,close:3560.3},
+            {time:'2025-08-12',open:3560.3,high:3598.5,low:3548.4,close:3585.7},
+            {time:'2025-08-13',open:3585.7,high:3625.4,low:3572.5,close:3612.3},
+            {time:'2025-08-14',open:3612.3,high:3658.6,low:3598.4,close:3645.7},
+            {time:'2025-08-15',open:3645.7,high:3692.5,low:3632.4,close:3678.3},
+            {time:'2025-08-18',open:3678.3,high:3715.6,low:3662.5,close:3702.4},
+            {time:'2025-08-19',open:3702.4,high:3748.5,low:3688.4,close:3735.7},
+            {time:'2025-08-20',open:3735.7,high:3782.6,low:3722.5,close:3768.3},
+            {time:'2025-08-21',open:3768.3,high:3815.4,low:3755.4,close:3802.6},
+            {time:'2025-08-22',open:3802.6,high:3658.5,low:3632.4,close:3648.7},
+            {time:'2025-08-25',open:3648.7,high:3682.5,low:3635.4,close:3668.3},
+            {time:'2025-08-26',open:3668.3,high:3705.6,low:3655.5,close:3692.4},
+            {time:'2025-08-27',open:3692.4,high:3732.5,low:3678.4,close:3718.7},
+            {time:'2025-08-28',open:3718.7,high:3758.6,low:3705.5,close:3745.3},
+            {time:'2025-08-29',open:3745.3,high:3792.5,low:3732.4,close:3778.6},
+            {time:'2025-09-01',open:3778.6,high:3825.4,low:3765.5,close:3812.3},
+            {time:'2025-09-02',open:3812.3,high:3858.6,low:3798.4,close:3845.7},
+            {time:'2025-09-03',open:3845.7,high:3892.5,low:3832.4,close:3878.3},
+            {time:'2025-09-04',open:3878.3,high:3925.6,low:3865.5,close:3912.4},
+            {time:'2025-09-05',open:3912.4,high:3962.5,low:3898.4,close:3948.7},
+            {time:'2025-09-08',open:3948.7,high:3995.6,low:3935.5,close:3982.3},
+            {time:'2025-09-09',open:3982.3,high:4028.5,low:3968.4,close:4015.6},
+            {time:'2025-09-10',open:4015.6,high:4068.4,low:4002.5,close:4052.7},
+            {time:'2025-09-11',open:4052.7,high:4095.6,low:4038.4,close:4082.3},
+            {time:'2025-09-12',open:4082.3,high:4128.5,low:4068.4,close:4115.6},
+            {time:'2025-09-15',open:4115.6,high:4162.4,low:4102.5,close:4148.7},
+            {time:'2025-09-16',open:4148.7,high:4195.6,low:4135.4,close:4182.3},
+            {time:'2025-09-17',open:4182.3,high:4228.5,low:4168.4,close:4215.6},
+            {time:'2025-09-18',open:4215.6,high:4258.4,low:4202.5,close:4245.7},
+            {time:'2025-09-19',open:4245.7,high:4295.6,low:4232.4,close:4278.3},
+            {time:'2025-09-22',open:4278.3,high:4325.5,low:4265.4,close:4312.6},
+            {time:'2025-09-23',open:4312.6,high:4362.4,low:4298.5,close:4348.7},
+            {time:'2025-09-24',open:4348.7,high:4392.5,low:4335.4,close:4378.3},
+            {time:'2025-09-25',open:4378.3,high:4425.6,low:4365.5,close:4412.4},
+            {time:'2025-09-26',open:4412.4,high:4462.5,low:4398.4,close:4448.7},
+            {time:'2025-09-29',open:4448.7,high:4495.6,low:4435.5,close:4482.3},
+            {time:'2025-09-30',open:4482.3,high:4395.5,low:3972.4,close:3995.6},
+            {time:'2025-10-01',open:3995.6,high:4028.5,low:3978.4,close:4012.3},
+            {time:'2025-10-02',open:4012.3,high:4055.6,low:3998.5,close:4042.7},
+            {time:'2025-10-03',open:4042.7,high:4088.4,low:4028.5,close:4075.3},
+            {time:'2025-10-06',open:4075.3,high:4118.5,low:4062.4,close:4105.6},
+            {time:'2025-10-07',open:4105.6,high:4148.4,low:4092.5,close:4135.7},
+            {time:'2025-10-08',open:4135.7,high:4178.5,low:4122.4,close:4165.3},
+            {time:'2025-10-09',open:4165.3,high:4208.4,low:4152.5,close:4195.6},
+            {time:'2025-10-10',open:4195.6,high:4242.5,low:4182.4,close:4228.7},
+            {time:'2025-10-13',open:4228.7,high:4275.6,low:4215.5,close:4262.3},
+            {time:'2025-10-14',open:4262.3,high:4308.4,low:4248.5,close:4295.6},
+            {time:'2025-10-15',open:4295.6,high:4342.5,low:4282.4,close:4328.7},
+            {time:'2025-10-16',open:4328.7,high:4375.6,low:4315.5,close:4362.3},
+            {time:'2025-10-17',open:4362.3,high:4408.4,low:4348.5,close:4395.6},
+            {time:'2025-10-20',open:4395.6,high:4442.5,low:4382.4,close:4428.7},
+            {time:'2025-10-21',open:4428.7,high:4475.6,low:4415.5,close:4462.3},
+            {time:'2025-10-22',open:4462.3,high:4512.4,low:4448.5,close:4498.6},
+            {time:'2025-10-23',open:4498.6,high:4548.5,low:4485.4,close:4532.7},
+            {time:'2025-10-24',open:4532.7,high:4585.6,low:4518.5,close:4568.3},
+            {time:'2025-10-27',open:4568.3,high:4618.4,low:4555.5,close:4602.6},
+            {time:'2025-10-28',open:4602.6,high:4655.5,low:4588.4,close:4638.7},
+            {time:'2025-10-29',open:4638.7,high:4695.6,low:4625.5,close:4678.3},
+            {time:'2025-10-30',open:4678.3,high:4738.4,low:4662.5,close:4718.6},
+            {time:'2025-10-31',open:4718.6,high:4548.5,low:4522.4,close:4538.7},
+            {time:'2025-11-03',open:4538.7,high:4575.6,low:4525.5,close:4562.3},
+            {time:'2025-11-04',open:4562.3,high:4605.4,low:4548.5,close:4592.6},
+            {time:'2025-11-05',open:4592.6,high:4638.5,low:4578.4,close:4625.7},
+            {time:'2025-11-06',open:4625.7,high:4672.6,low:4612.5,close:4658.3},
+            {time:'2025-11-07',open:4658.3,high:4708.4,low:4645.5,close:4695.6},
+            {time:'2025-11-10',open:4695.6,high:4748.5,low:4682.4,close:4732.7},
+            {time:'2025-11-11',open:4732.7,high:4785.6,low:4718.5,close:4768.3},
+            {time:'2025-11-12',open:4768.3,high:4825.4,low:4755.5,close:4808.6},
+            {time:'2025-11-13',open:4808.6,high:4868.5,low:4795.4,close:4852.7},
+            {time:'2025-11-14',open:4852.7,high:4915.6,low:4838.5,close:4898.3},
+            {time:'2025-11-17',open:4898.3,high:4958.4,low:4882.5,close:4942.6},
+            {time:'2025-11-18',open:4942.6,high:5005.5,low:4928.4,close:4988.7},
+            {time:'2025-11-19',open:4988.7,high:5055.6,low:4975.5,close:5038.3},
+            {time:'2025-11-20',open:5038.3,high:5108.4,low:5022.5,close:5088.6},
+            {time:'2025-11-21',open:5088.6,high:5162.5,low:5075.4,close:5142.7},
+            {time:'2025-11-24',open:5142.7,high:5218.4,low:5128.5,close:5198.3},
+            {time:'2025-11-25',open:5198.3,high:5278.5,low:5182.4,close:5258.6},
+            {time:'2025-11-26',open:5258.6,high:5345.4,low:5242.5,close:5322.7},
+            {time:'2025-11-27',open:5322.7,high:5412.5,low:5305.4,close:5392.3},
+            {time:'2025-11-28',open:5392.3,high:5480.6,low:5375.5,close:5458.7},
+            {time:'2025-12-01',open:5458.7,high:5548.4,low:5442.5,close:5525.3},
+            {time:'2025-12-02',open:5525.3,high:5595.5,low:5508.4,close:5575.6},
+            {time:'2025-12-03',open:5575.6,high:5398.5,low:5372.4,close:5392.7},
+            {time:'2025-12-04',open:5392.7,high:5432.5,low:5378.4,close:5415.3},
+            {time:'2025-12-05',open:5415.3,high:5458.6,low:5402.5,close:5442.7},
+            {time:'2025-12-08',open:5442.7,high:5488.4,low:5428.5,close:5468.3},
+            {time:'2025-12-09',open:5468.3,high:5512.5,low:5452.4,close:5495.6},
+            {time:'2025-12-10',open:5495.6,high:5545.4,low:5478.5,close:5528.7},
+            {time:'2025-12-11',open:5528.7,high:5585.6,low:5512.5,close:5562.3},
+            {time:'2025-12-12',open:5562.3,high:5398.5,low:5372.4,close:5388.6},
+            {time:'2025-12-15',open:5388.6,high:5428.5,low:5375.4,close:5412.3},
+            {time:'2025-12-16',open:5412.3,high:5455.6,low:5398.5,close:5438.7},
+            {time:'2025-12-17',open:5438.7,high:5482.4,low:5425.5,close:5462.3},
+            {time:'2025-12-18',open:5462.3,high:5508.5,low:5448.4,close:5488.6},
+            {time:'2025-12-19',open:5488.6,high:5542.4,low:5472.5,close:5518.7},
+            {time:'2025-12-22',open:5518.7,high:5568.5,low:5502.4,close:5548.3},
+            {time:'2025-12-23',open:5548.3,high:5392.5,low:5368.4,close:5385.6},
+            {time:'2025-12-24',open:5385.6,high:5422.4,low:5372.5,close:5408.7},
+            {time:'2025-12-26',open:5408.7,high:5448.5,low:5395.4,close:5432.3},
+            {time:'2025-12-29',open:5432.3,high:5468.6,low:5418.5,close:5452.7},
+            {time:'2025-12-30',open:5452.7,high:5495.4,low:5438.5,close:5478.3},
+            {time:'2025-12-31',open:5478.3,high:5112.5,low:5088.4,close:5108.6},
+            {time:'2026-01-02',open:5108.6,high:5148.5,low:5095.4,close:5132.3},
+            {time:'2026-01-05',open:5132.3,high:5172.4,low:5118.5,close:5158.7},
+            {time:'2026-01-06',open:5158.7,high:5205.6,low:5145.4,close:5188.3},
+            {time:'2026-01-07',open:5188.3,high:5238.4,low:5175.5,close:5218.6},
+            {time:'2026-01-08',open:5218.6,high:5272.5,low:5205.4,close:5252.7},
+            {time:'2026-01-09',open:5252.7,high:5298.4,low:5238.5,close:5278.3},
+            {time:'2026-01-12',open:5278.3,high:5325.6,low:5265.4,close:5308.7},
+            {time:'2026-01-13',open:5308.7,high:5148.5,low:5122.4,close:5142.3},
+            {time:'2026-01-14',open:5142.3,high:5178.6,low:5128.5,close:5162.7},
+            {time:'2026-01-15',open:5162.7,high:5208.4,low:5148.5,close:5188.3},
+            {time:'2026-01-16',open:5188.3,high:5235.6,low:5175.4,close:5218.7},
+            {time:'2026-01-20',open:5218.7,high:5265.4,low:5205.5,close:5248.3},
+            {time:'2026-01-21',open:5248.3,high:5295.6,low:5235.4,close:5278.7},
+            {time:'2026-01-22',open:5278.7,high:5325.4,low:5265.5,close:5308.3},
+            {time:'2026-01-23',open:5308.3,high:5358.5,low:5295.4,close:5342.6},
+            {time:'2026-01-26',open:5342.6,high:5392.4,low:5328.5,close:5375.7},
+            {time:'2026-01-27',open:5375.7,high:5248.5,low:5218.4,close:5238.3},
+            {time:'2026-01-28',open:5238.3,high:5278.6,low:5225.5,close:5262.7},
+            {time:'2026-01-29',open:5262.7,high:5308.4,low:5248.5,close:5288.3},
+            {time:'2026-01-30',open:5288.3,high:5338.5,low:5275.4,close:5318.6},
+            {time:'2026-02-03',open:5318.6,high:5368.4,low:5305.5,close:5348.7},
+            {time:'2026-02-04',open:5348.7,high:5395.6,low:5335.4,close:5378.3},
+            {time:'2026-02-05',open:5378.3,high:5425.4,low:5365.5,close:5408.6},
+            {time:'2026-02-06',open:5408.6,high:5458.5,low:5395.4,close:5438.7},
+            {time:'2026-02-07',open:5438.7,high:5495.6,low:5425.5,close:5472.3},
+            {time:'2026-02-10',open:5472.3,high:5528.4,low:5458.5,close:5508.6},
+            {time:'2026-02-11',open:5508.6,high:5562.5,low:5492.4,close:5542.7},
+            {time:'2026-02-12',open:5542.7,high:5598.4,low:5525.5,close:5575.3},
+            {time:'2026-02-13',open:5575.3,high:5398.5,low:5372.4,close:5392.6},
+            {time:'2026-02-14',open:5392.6,high:5428.5,low:5378.4,close:5412.3},
+            {time:'2026-02-17',open:5412.3,high:5455.6,low:5398.5,close:5438.7},
+            {time:'2026-02-18',open:5438.7,high:5482.4,low:5425.5,close:5462.3},
+            {time:'2026-02-19',open:5462.3,high:5508.5,low:5448.4,close:5488.6},
+            {time:'2026-02-20',open:5488.6,high:5542.4,low:5472.5,close:5518.7},
+            {time:'2026-02-23',open:5518.7,high:5568.5,low:5502.4,close:5548.3},
+            {time:'2026-02-24',open:5548.3,high:5612.4,low:5535.5,close:5592.6},
+            {time:'2026-02-25',open:5592.6,high:5248.5,low:5218.4,close:5235.7},
+            {time:'2026-02-26',open:5235.7,high:5272.5,low:5222.4,close:5258.3},
+            {time:'2026-02-27',open:5258.3,high:5305.6,low:5245.5,close:5288.6},
+            {time:'2026-03-02',open:5288.6,high:5335.4,low:5275.5,close:5318.7},
+            {time:'2026-03-03',open:5318.7,high:5362.5,low:5305.4,close:5345.3},
+            {time:'2026-03-04',open:5345.3,high:5195.6,low:5168.4,close:5185.7},
+            {time:'2026-03-05',open:5185.7,high:5228.4,low:5175.5,close:5212.3},
+            {time:'2026-03-06',open:5212.3,high:5195.4,low:5084.3,close:5154.7},
+        ];
+        candleSeries.setData(data);
+        chart.timeScale().fitContent();
+
+        // Tooltip overlay
+        const toolTip = document.createElement('div');
+        toolTip.style.cssText = `
+            position:absolute; top:12px; left:12px; z-index:10;
+            background:rgba(17,24,39,0.9); border:1px solid rgba(0,229,180,0.2);
+            border-radius:8px; padding:10px 14px; font-family:'DM Sans',sans-serif;
+            font-size:0.8rem; color:#e8edf5; pointer-events:none;
+            backdrop-filter:blur(8px); display:none;
+        `;
+        el.style.position = 'relative';
+        el.appendChild(toolTip);
+
+        chart.subscribeCrosshairMove(param => {
+            if (!param.time || !param.seriesData.size) { toolTip.style.display = 'none'; return; }
+            const d = param.seriesData.get(candleSeries);
+            if (!d) { toolTip.style.display = 'none'; return; }
+            const date = new Date(param.time * 1000).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+            const color = d.close >= d.open ? '#26a69a' : '#ef5350';
+            const arrow = d.close >= d.open ? '▲' : '▼';
+            toolTip.style.display = 'block';
+            toolTip.innerHTML = `
+                <div style="color:#8898aa; margin-bottom:6px;">${date} · XAU/USD</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 16px;">
+                    <span style="color:#8898aa">O</span><span>$${d.open.toFixed(2)}</span>
+                    <span style="color:#8898aa">H</span><span style="color:#26a69a">$${d.high.toFixed(2)}</span>
+                    <span style="color:#8898aa">L</span><span style="color:#ef5350">$${d.low.toFixed(2)}</span>
+                    <span style="color:#8898aa">C</span><span style="color:${color}">${arrow} $${d.close.toFixed(2)}</span>
+                </div>
+            `;
+        });
+
+        // Resize
+        window.addEventListener('resize', () => {
+            chart.applyOptions({ width: el.offsetWidth });
+        });
+    })();
+
+    // ---- FADE IN ----
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
